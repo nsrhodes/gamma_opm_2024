@@ -6,7 +6,7 @@ clc
 
 %% select analysis: 0 = data quality, 1 = 4mm tstat, 2 = visual mask, 3 = alpha
 
-opt_analysis = 0; 
+opt_analysis = 1; 
 
 %% select dataset: 0 = UoN kids, 1 = UoN adults, 2 = SK kids, 3 = SK adults
 dataset = 0;
@@ -22,7 +22,7 @@ elseif dataset == 1
     load('C:\Users\ppynr2\OneDrive - The University of Nottingham\phd\Gamma\demographics_alldata.mat')
     script_dir = 'C:\Users\ppynr2\OneDrive - The University of Nottingham\Documents\GitHub\OPM_gamma_UoN_SK\';
     addpath('R:\DRS-KidsOPM\Paediatric_OPM_Notts\fieldtrip-20220906')
-     project_dir = 'R:\DRS-KidsOPM\Paediatric_OPM_Notts\';
+     project_dir = 'R:\DRS-KidsOPM\Paediatric_OPM_Notts_AdultData\';
     power_line = 50; % 50 Hz powerline in UoN
     subs = [1:26];
 elseif dataset == 2
