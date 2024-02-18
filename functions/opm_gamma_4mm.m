@@ -133,7 +133,7 @@ end
 
 %% Somewhat hacky way of getting slot numbers for ICA visualiser
 
-precision_limit = 1e-6;
+precision_limit = 1e-4;
 
 pos = [ch_table.Px,ch_table.Py,ch_table.Pz];
 for sl_i = 1:size(Helmet_info.lay.pos,1)
@@ -330,7 +330,11 @@ data_f_clean = S.M*data_f_clean;
 
 % load AAL locations
 VOI_mat_file = [path_meshes,files_VOI];
+if exist([path_meshes,files_brain])
 brain_1mm = ft_read_mri([path_meshes,files_brain]);
+else
+    brain_1mm = ft_read_mri([path_meshes,files_brain '.gz']);
+end
 
 cfg = [];
 cfg.downsample = 4;
