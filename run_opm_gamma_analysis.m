@@ -4,9 +4,9 @@ clear all
 close all
 clc
 
-%% select analysis: 0 = data quality, 1 = 4mm tstat, 2 = visual mask, 3 = alpha
+%% select analysis: 0 = data quality, 1 = 4mm tstat, 2 = visual mask, 3 = alpha, 4 = vis and control, 5 = convert tstat units
 
-opt_analysis = 2; 
+opt_analysis = 5; 
 
 %% select dataset: 0 = UoN kids, 1 = UoN adults, 2 = SK kids, 3 = SK adults
 dataset = 2;
@@ -60,5 +60,8 @@ for ss = subs
         opm_gamma_visualmask(sub,ses,project_dir,power_line,age);
     elseif opt_analysis == 3
         opm_gamma_alpha(sub,ses,project_dir,power_line,age);
+    elseif opt_analysis == 4
+    elseif opt_analysis == 5
+        convert_tstat_units(sub,ses,project_dir)
     end 
 end 
