@@ -32,7 +32,7 @@ ses="001"
 task="faces_circles"
 run="001"
 
-tstat="${project_dir}/derivatives/Tstats/sub-${sub}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_pseudoT_circles_mm"
+tstat="${project_dir}/derivatives/Tstats/sub-${sub}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_pseudoT_circles_adj_mm"
 
 
 # Check files exist

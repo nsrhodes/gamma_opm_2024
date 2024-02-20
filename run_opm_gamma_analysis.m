@@ -9,7 +9,7 @@ clc
 opt_analysis = 5; 
 
 %% select dataset: 0 = UoN kids, 1 = UoN adults, 2 = SK kids, 3 = SK adults
-dataset = 2;
+dataset = 3;
 
 if dataset == 0
     load('C:\Users\ppynr2\OneDrive - The University of Nottingham\phd\Gamma\demographics_alldata.mat')
