@@ -9,7 +9,7 @@ function opm_gamma_4mm(sub,ses,project_dir,power_line,age)
 % ft_defaults
 % %%
 % restoredefaultpath
-cleaning_only = 1;
+cleaning_only = 0;
 close all
 clc
 
@@ -41,7 +41,12 @@ files_meshes = ['sub-',sub,'_meshes.mat'];
 files_AAL_centroids = ['sub-',sub,'_AAL_centroids.nii.gz'];
 files_AAL_regions = ['sub-',sub,'_AAL_regions.nii.gz'];
 files_VOI = ['sub-',sub,'_AAL_VOI.mat'];
+if power_line == 50
 files_brain = ['sub-',sub,'_brain.nii'];
+else 
+    files_brain = ['sub-', sub, '_brain.nii.gz']; %brain files are zipped for SK data
+end
+
 
 path_mri = [path_main,'anat',filesep];
 files_mri = ['sub-',sub,'_anat.nii'];
@@ -330,11 +335,8 @@ data_f_clean = S.M*data_f_clean;
 
 % load AAL locations
 VOI_mat_file = [path_meshes,files_VOI];
-if exist([path_meshes,files_brain])
 brain_1mm = ft_read_mri([path_meshes,files_brain]);
-else
-    brain_1mm = ft_read_mri([path_meshes,files_brain '.gz']);
-end
+
 
 cfg = [];
 cfg.downsample = 4;
