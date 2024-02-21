@@ -6,10 +6,10 @@ clc
 
 %% select analysis: 0 = data quality, 1 = 4mm tstat, 2 = visual mask, 3 = alpha, 4 = vis and control, 5 = convert tstat units
 
-opt_analysis = 5; 
+opt_analysis = 3; 
 
 %% select dataset: 0 = UoN kids, 1 = UoN adults, 2 = SK kids, 3 = SK adults
-dataset = 3;
+dataset = 2;
 
 if dataset == 0
     load('C:\Users\ppynr2\OneDrive - The University of Nottingham\phd\Gamma\demographics_alldata.mat')
@@ -59,8 +59,9 @@ for ss = subs
     elseif opt_analysis == 2
         opm_gamma_visualmask(sub,ses,project_dir,power_line,age);
     elseif opt_analysis == 3
-        opm_gamma_alpha(sub,ses,project_dir,power_line,age);
+        opm_gamma_4mm_alpha(sub,ses,project_dir,power_line,age);
     elseif opt_analysis == 4
+        opm_gamma_vis_control(sub,ses,project_dir,power_line,age);
     elseif opt_analysis == 5
         convert_tstat_units(sub,ses,project_dir)
     end 

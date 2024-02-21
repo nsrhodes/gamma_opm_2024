@@ -1,4 +1,4 @@
-function opm_gamma_vis_control(sub,ses,project_dir)
+function opm_gamma_vis_control(sub,ses,project_dir,power_line,age)
 %5 if running
 % sub = '016'
 % ses = '001'
@@ -10,7 +10,7 @@ ft_defaults
 cleaning_only = 0;
 close all
 clc
-clearvars -except cleaning_only sub ses project_dir
+clearvars -except cleaning_only sub ses project_dir power_line age
 run = 'run-001';
 
 addpath(['R:\DRS-KidsOPM\Paediatric_OPM_Notts\fieldtrip-20220906'])
@@ -31,8 +31,8 @@ path_cleaning = [datadir,'derivatives',filesep,'cleaning',filesep,'sub-',sub,fil
 files_cleaning = [path_cleaning,filename];
 
 path_VEs = [datadir,'derivatives',filesep,'VEs',filesep,'sub-',sub,filesep];
-files_VE_vis = [filename,'_VE_vis'];
-files_VE_cont = [filename,'_VE_cont'];
+files_VE_vis = [filename,'_VE_vis_adj'];
+files_VE_cont = [filename,'_VE_cont_adj'];
 
 path_meg_data = [path_main,'meg',filesep];
 
@@ -41,8 +41,11 @@ files_meshes = ['sub-',sub,'_meshes.mat'];
 files_AAL_centroids = ['sub-',sub,'_AAL_centroids.nii.gz'];
 files_AAL_regions = ['sub-',sub,'_AAL_regions.nii.gz'];
 files_VOI = ['sub-',sub,'_AAL_VOI.mat'];
+if power_line == 50
 files_brain = ['sub-',sub,'_brain.nii'];
-
+else 
+    files_brain = ['sub-', sub, '_brain.nii.gz']; %brain files are zipped for SK data
+end
 path_mri = [path_main,'anat',filesep];
 files_mri = ['sub-',sub,'_anat.nii'];
 S.mri_file = [path_mri,files_mri];
@@ -59,8 +62,8 @@ path_Tstat = [datadir,'derivatives',filesep,'Tstats',filesep,'sub-',sub,filesep]
 files_Tstat = [filename,'_pseudoT_'];
 
 path_TFS = [datadir,'derivatives',filesep,'VEs',filesep,'sub-',sub,filesep]
-files_TFS_vis = [filename,'_TFS_vis'];
-files_TFS_cont = [filename,'_TFS_cont']
+files_TFS_vis = [filename,'_TFS_vis_adj'];
+files_TFS_cont = [filename,'_TFS_cont_adj']
 
 %read meg data
 cd(path_meg_data)
@@ -98,7 +101,7 @@ load([path_helmet,files_helmet_info])
 data = data - mean(data,1);
 
 % Notch filter
-for harms = [50,100,150]
+for harms = [power_line,power_line*2,power_line*3]
     Wo = harms/(fs/2);  BW = Wo/35;
     [b,a] = iirnotch(Wo,BW);
     disp('Applying Notch filter')
@@ -139,7 +142,7 @@ end
 
 %% Somewhat hacky way of getting slot numbers for later. Change ICA comp visualiser?
 
-precision_limit = 1e-6;
+precision_limit = 1e-4;
 pos = [ch_table.Px,ch_table.Py,ch_table.Pz];
 for sl_i = 1:size(Helmet_info.lay.pos,1)
     detected_ind = find(sqrt(sum((repmat(Helmet_info.sens_pos(sl_i,:),height(ch_table),1) - pos/100).^2,2)) < precision_limit)
@@ -205,25 +208,7 @@ trial_info.type = events_table.type(circles_events);
 removefields(data_strct,'sampleinfo')
 %% resample for viewing and mark artefacts
 disp("Check for bad trials")
-if ~exist([files_cleaning,'_vis_artfcts.mat'],'file')
-    resamplefs = 150; %Hz
-    cfg            = [];
-    cfg.resamplefs = resamplefs;
-    cfg.detrend    = 'no';
-    data_preproc_150   = ft_resampledata(cfg, data_strct);
-
-    %%% Get rid of bad trials
-    cfg_art          = [];
-    cfg_art.viewmode = 'vertical';
-    cfg_art = ft_databrowser(cfg_art,data_preproc_150);
-    clear data_preproc_150
-
-    vis_artfcts = cfg_art.artfctdef.visual.artifact * ...
-        (data_strct.fsample/resamplefs);
-    save([files_cleaning,'_vis_artfcts.mat'],'vis_artfcts')
-else
-    load([files_cleaning,'_vis_artfcts.mat'],'vis_artfcts')
-end
+load([files_cleaning,'_vis_artfcts_adj.mat'],'vis_artfcts')
 
 % automatic artifact rejection
 thresh_val = 3;
@@ -248,52 +233,9 @@ end
 trial_info = trial_info(good_trials,:);
 %% ICA
 lay = Helmet_info.lay;
-disp("ICA artifact rejection")
-if ~exist([files_ICA,'_bad_ICA_comps.mat'],'file') || ~exist([files_ICA,'_ICA_data.mat'],'file')
-
-    % Resample for faster ICA
-    cfg            = [];
-    cfg.resamplefs = 150;
-    cfg.detrend    = 'no';
-    data_ica_150   = ft_resampledata(cfg, data_vis_clean);
-
-    % Run ICA on 150 Hz data or load previous unmixing matrix
-    cfg            = [];
-    if ~exist([files_ICA,'_ICA_data.mat'],'file')
-        cfg.method = 'runica';
-    else
-        load([files_ICA,'_ICA_data.mat'],'comp150')
-        cfg.unmixing   = comp150.unmixing;
-        cfg.topolabel  = comp150.topolabel;
-    end
-    comp150    = ft_componentanalysis(cfg, data_ica_150);
-
-    % Inspect components for rejection or load file with bad component list
-    if ~exist([files_ICA,'_bad_ICA_comps.mat'],'file')
-        disp("Choose bad components")
-        [bad_comps] = plot_ICA_comps(comp150,ch_table,lay,[]);
-
-        save([files_ICA,'_bad_ICA_comps.mat'],'bad_comps')
-        close(gcf)
-    else
-        disp("Loading saved bad components")
-        load([files_ICA,'_bad_ICA_comps.mat'],'bad_comps')
-    end
-
-    % only keep unmixing matrix and topolabel for component removal
-    tokeep = {'unmixing','topolabel'};
-    fns=fieldnames(comp150);
-    toRemove = fns(~ismember(fns,tokeep));
-    comp150 = rmfield(comp150,toRemove);
-    save([files_ICA,'_ICA_data.mat'],'comp150')
-
-    clear data_ica_150
-else
     disp("Loading bad coponents, topographies and old unmixing matrix")
-    load([files_ICA,'_bad_ICA_comps.mat'],'bad_comps')
-    load([files_ICA,'_ICA_data.mat'],'comp150')
-end
-
+    load([files_ICA,'_bad_ICA_comps_adj.mat'],'bad_comps')
+    load([files_ICA,'_ICA_data_adj.mat'],'comp150')
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -306,7 +248,7 @@ comp1200        = ft_componentanalysis(cfg, data_vis_clean);
 % Plot comps again to confirm they are correct
 disp("Confirm bad ICA components")
 % [bad_comps] = plot_ICA_comps(comp1200,ch_table,lay,bad_comps)
-save([files_ICA,'_bad_ICA_comps.mat'],'bad_comps');
+save([files_ICA,'_bad_ICA_comps_adj.mat'],'bad_comps');
 
 % Remove components from data
 cfg           = [];
