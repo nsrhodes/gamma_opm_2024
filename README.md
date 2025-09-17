@@ -1,6 +1,6 @@
-Natalie Rhodes et al. bioRxiv 2024 https://www.biorxiv.org/content/10.1101/2024.09.10.612351v1
+Natalie Rhodes et al. Imaging Neuroscience 2025 (https://doi.org/10.1162/imag_a_00527)
 --------------------------------------------------------------------------------------------------------------
-All data will be published on Zenodo (Nottingham) and Ontario Brain Institute (SickKids) following publication
+All data are published on Zenodo (Nottingham - https://zenodo.org/records/15190020) and will be published on Ontario Brain Institute (SickKids)
 
 Requirements:
 - Fieldtrip version 20220906 https://www.fieldtriptoolbox.org/download.php
